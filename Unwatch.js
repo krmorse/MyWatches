@@ -17,7 +17,7 @@ Ext.define('Rally.ui.menu.item.Unwatch', {
                     Rally.ui.notify.Notifier.show({ message: 'Work item unwatched successfully.' });
                 },
                 failure: function(response) {
-                    Rally.ui.notify.Notifier.showError('An error occurred while unwatching.');
+                    Rally.ui.notify.Notifier.showError({ message: 'An error occurred while unwatching.' });
                     console.error(response);
                 },
                 scope: this

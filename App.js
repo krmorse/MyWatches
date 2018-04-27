@@ -33,7 +33,7 @@ Ext.define('CustomApp', {
             },
             failure: function(response) {
                 this.setLoading(false);
-                Rally.ui.notify.Notifier.showError('An error occurred while loading your watches.');
+                Rally.ui.notify.Notifier.showError({ message: 'An error occurred while loading your watches.' });
                 console.error(response);
             },
             scope: this
