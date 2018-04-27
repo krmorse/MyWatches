@@ -2,8 +2,15 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     layout: 'fit',
+
+    start: 1,
+    pageSize: 25,
     
     launch: function() {
+        this._loadWatches();
+    },
+
+    _loadWatches: function() {
         this.setLoading(true);
         var context = this.getContext(),
             user = context.getUser(),
@@ -13,7 +20,9 @@ Ext.define('CustomApp', {
             url: basePath + '/apps/pigeon/api/v2/watch',
             method: 'GET',
             params: {
-                UserUUID: user._refObjectUUID
+                UserUUID: user._refObjectUUID,
+                start: this.start,
+                pagesize: this.pageSize
             },
             success: function(response) {
                 var results = JSON.parse(response.responseText).Results;
@@ -37,21 +46,24 @@ Ext.define('CustomApp', {
         }).then({
             success: function(artifactModel) {
                 var url = Rally.environment.getServer().getWsapiUrl() + '/artifact';
+                artifactModel.addField({ name: 'watchedOn' });
                 artifactModel.setProxy({ type: 'rallywsapiproxy', reader: { type: 'rallywsapireader', root: 'Artifact' }, url: url});
                 var uuids = _.pluck(results, 'ArtifactUUID');
-                return Ext.create('Rally.data.wsapi.Store', {
+                var store = Ext.create('Rally.data.wsapi.Store', {
                     model: artifactModel,
                     context: {
                         project: null,
                         workspace: this.getContext().getWorkspaceRef()
                     },
                     filters: [{ property: 'ObjectUUID', operator: 'in', value: uuids }]
-                }).load().then({
+                });
+                return store.load().then({
                     success: function(records) {
-                        return {
-                            watches: results,
-                            artifacts: records
-                        };
+                        var watchesByArtifactUUID = _.indexBy(results, 'ArtifactUUID');
+                        _.each(records, function(record) {
+                            record.watch = watchesByArtifactUUID[record.get('_refObjectUUID')];
+                        });
+                        return store;
                     }
                 });
             },
@@ -59,12 +71,36 @@ Ext.define('CustomApp', {
         });
     },
 
-    _displayArtifacts: function(data) {
-      var artifactsByUUID = _.indexBy(data.artifacts, function(artifact) { return artifact.get('_refObjectUUID');});
-      var watchesByArtifactUUID = _.indexBy(data.watches, 'ArtifactUUID');
-      var gridData = _.map(data.watches, function(watch) {
-
-      });
-      debugger;
-  }
+    _displayArtifacts: function(store) {
+        this.setLoading(false);
+        if (this.down('rallygrid')) {
+            this.down('rallygrid').destroy();
+        }
+        this.add({
+            xtype: 'rallygrid',
+            showPagingToolbar: true,
+            showRowActionsColumn: true,
+            sortableColumns: false,
+            editable: false,
+            store: store,
+            pagingToolbarCfg: {
+                pageSizes: [10, 25],
+                comboboxConfig: {
+                    value: this.pageSize
+                }
+            },
+            columnCfgs: [
+                'FormattedID',
+                'Name',
+                'Owner',
+                {
+                    dataIndex: 'watchedOn',
+                    text: 'Watched On',
+                    renderer: function(value, cell, record) {
+                        return Rally.util.DateTime.formatWithDefault(new Date(record.watch.CreationDate));
+                    }
+                }
+            ]
+        });
+    }
 });
