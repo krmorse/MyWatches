@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Watches</title>
+
+    <script type="text/javascript" src="https://rally1.rallydev.com/apps/2.1/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("CustomApp",{extend:"Rally.app.App",componentCls:"app",layout:"fit",launch:function(){this.setLoading(!0);var t=this.getContext().getUser(),e=Rally.environment.getServer().getBaseUrl();Ext.Ajax.request({url:e+"/apps/pigeon/api/v2/watch",method:"GET",params:{UserUUID:t._refObjectUUID},success:function(t){var e=JSON.parse(t.responseText).Results;this._loadArtifacts(e).then({success:this._displayArtifacts,scope:this})},failure:function(t){this.setLoading(!1),Rally.ui.notify.Notifier.showError("An error occurred while loading your watches."),console.error(t)},scope:this})},_loadArtifacts:function(t){return Rally.data.ModelFactory.getModel({type:"artifact"}).then({success:function(e){var r=Rally.environment.getServer().getWsapiUrl()+"/artifact";e.setProxy({type:"rallywsapiproxy",reader:{type:"rallywsapireader",root:"Artifact"},url:r});var a=_.pluck(t,"ArtifactUUID");return Ext.create("Rally.data.wsapi.Store",{model:e,context:{project:null,workspace:this.getContext().getWorkspaceRef()},filters:[{property:"ObjectUUID",operator:"in",value:a}]}).load().then({success:function(e){return{watches:t,artifacts:e}}})},scope:this})},_displayArtifacts:function(t){_.indexBy(t.artifacts,function(t){return t.get("_refObjectUUID")}),_.indexBy(t.watches,"ArtifactUUID"),_.map(t.watches,function(t){})}});
+
+            Rally.launchApp('CustomApp', {
+                name:"My Watches",
+                parentRepos:"",
+                version:"0.1.1"
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        
+    </style>
+</head>
+<body>
+</body>
+</html>
