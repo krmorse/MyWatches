@@ -1,13 +1,8 @@
-My Watches
-=========================
+# My Watches
 
-## Overview
+This app shows a list of all the artifacts you have watched.  It also makes it easy to unwatch those that are no longer relevant.
 
+![screenshot](images/screenshot.png "My Watches Screenshot")
 
-## License
-
-My Watches is released under the MIT license.  See the file [LICENSE](./LICENSE) for the full text.
-
-##Documentation for SDK
-
-You can find the documentation on our help [site.](https://help.rallydev.com/apps/2.1/doc/)
+## Installation
+The app is installed as a Custom HTML App ([see help documentation](https://help.rallydev.com/custom-html))
