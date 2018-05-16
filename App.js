@@ -57,15 +57,21 @@ Ext.define('CustomApp', {
                     },
                     filters: [{ property: 'ObjectUUID', operator: 'in', value: uuids }]
                 });
-                return store.load().then({
-                    success: function(records) {
-                        var watchesByArtifactUUID = _.indexBy(results, 'ArtifactUUID');
-                        _.each(records, function(record) {
-                            record.watch = watchesByArtifactUUID[record.get('_refObjectUUID')];
-                        });
-                        return store;
-                    }
-                });
+
+                if (results.length) {
+                    return store.load().then({
+                        success: function(records) {
+                            var watchesByArtifactUUID = _.indexBy(results, 'ArtifactUUID');
+                            _.each(records, function(record) {
+                                record.watch = watchesByArtifactUUID[record.get('_refObjectUUID')];
+                            });
+                            return store;
+                        }
+                    });
+                } else {
+                    store.loadRawData([]);
+                    return store;
+                }
             },
             scope: this
         });
